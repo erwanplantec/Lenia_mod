@@ -9,7 +9,7 @@ class Lenia_C(nn.Module):
 		super().__init__()
 
 		self.channels = []
-		self.kernels = []
+		self.kernels = nn.ModuleList([])
 
 		self.config = config
 
@@ -17,20 +17,32 @@ class Lenia_C(nn.Module):
 	#------------------------------------------------------
 	#-----------------------PROPERTIES---------------------
 	#------------------------------------------------------
-	def __getattr__(self, attr):
-		return self.config[attr]
-	#------------------------------------------------------
 	def __getitem__(self, i):
 		return self.channels[i].state
 	#------------------------------------------------------
 	@property
 	def state(self):
-		return torch.cat([c.state for c in self.channels])
+		return torch.cat([c.state.unsqueeze(0) for c in self.channels])
 	@state.setter
 	def state(self, state):
 		assert state.shape[0] == self.C
 		for i, c in enumerate(self.channels):
-			c.state = state[i]
+			c.state = state[i, ...]
+	@property
+	def SX(self):
+		return self.config["SX"]
+	@property
+	def SY(self):
+		return self.config["SY"]
+	@property
+	def T(self):
+		return self.config["T"]
+	@property
+	def R(self):
+		return self.config["R"]
+	@property
+	def device(self):
+		return self.config["device"]
 	#------------------------------------------------------
 	@property
 	def C(self):
@@ -39,7 +51,6 @@ class Lenia_C(nn.Module):
 	#------------------------BUILDING----------------------
 	#------------------------------------------------------
 	def add_kernel(self, kernel):
-		self.add_module(kernel)
 		self.kernels.append(kernel)
 	#------------------------------------------------------
 	def add_channel(self, channel):
@@ -48,23 +59,23 @@ class Lenia_C(nn.Module):
 	#-------------------------RUNNING----------------------
 	#------------------------------------------------------
 	def step(self):
-		X_fft = [torch.rfft(self.state[:,:,:,i], signal_ndim=2, onesided=False) 
+		X_fft = [torch.rfft(self.state[i,:,:], signal_ndim=2, onesided=False) 
 			for i in range(self.C)]
 		dX = torch.zeros((self.C, self.SX, self.SY))
 		dXn = torch.zeros((self.C, self.SX, self.SY))
 		for kernel in self.kernels:
-			field = kernel(X_fft)
-			dX[kernel.channel] = dX[kernel.channel] + kernel.h * field
-			dXn[kernel.channel] = dXn[kernel.channel] + kernel.h
+			field, norm = kernel(X_fft)
+			dX = dX + field
+			dXn = dXn + norm
 
 		for i, c in enumerate(self.channels):
 			c.update(dX[i] / dXn[i])
 	#------------------------------------------------------
 	def run(self, T, record = True):
 		if record :
-			orb = torch.zeros((T, self.C, self.SX, self.SY))
+			orb = torch.zeros((T, self.C, self.SX, self.SY)).to(self.device)
 		for t in range(T):
 			self.step()
 			if record:
-				orb[t] = self.state
+				orb[t] = self.state.detach()
 		return orb if record else self.state
