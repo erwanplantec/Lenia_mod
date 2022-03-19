@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+from cv2 import VideoWriter, VideoWriter_fourcc
 
 def complex_mult_torch(X, Y):
     """ Computes the complex multiplication in Pytorch when the tensor last dimension is 2: 0 is the real component and 1 the imaginary one"""
@@ -20,39 +21,14 @@ def roll_n(X, axis, n):
     back = X[b_idx]
     return torch.cat([back, front], axis)
 
-# import os
-# os.environ['FFMPEG_BINARY'] = 'ffmpeg'
-# import moviepy.editor as mvp
-# from moviepy.video.io.ffmpeg_writer import FFMPEG_VideoWriter
-# from IPython.display import HTML, display, clear_output
+def generate_video(array, filename, fps = 30, width = 720, height = 720):
+    video = VideoWriter(filename, VideoWriter_fourcc(*'mp4v'), float(fps), (width, height))
+    for i in range(array.shape[0]):
+        video.write(array[i])
+    video.release()
 
-# class VideoWriter:
-#     def __init__(self, filename, fps=30.0, **kw):
-#         self.writer = None
-#         self.params = dict(filename=filename, fps=fps, **kw)
+if __name__ == '__main__':
+    traj = np.random.randint(0, 256, (600, 750, 750, 3), dtype=np.uint8)
+    generate_video(traj, './videos/noise.mp4', width = 750, height = 750)       
 
-#     def add(self, img):
-#         img = np.asarray(img)
-#         if self.writer is None:
-#           h, w = img.shape[:2]
-#           self.writer = FFMPEG_VideoWriter(size=(w, h), **self.params)
-#         if img.dtype in [np.float32, np.float64]:
-#           img = np.uint8(img.clip(0, 1)*255)
-#         if len(img.shape) == 2:
-#           img = np.repeat(img[..., None], 3, -1)
-#         self.writer.write_frame(img)
 
-#     def close(self):
-#         if self.writer:
-#             self.writer.close()
-
-#     def __enter__(self):
-#         return self
-
-#     def __exit__(self, *kw):
-#         self.close()
-
-#     def show(self, **kw):
-#         self.close()
-#         fn = self.params['filename']
-#         display(mvp.ipython_display(fn, **kw))

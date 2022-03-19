@@ -78,8 +78,65 @@ class Kernel(nn.Module):
 		return pot
 	#------------------------------------------------------
 	def show(self):
-		plt.imshow(torch.irfft(self.kernel, signal_ndim=2, onesided=False).detach().view(256, 256).numpy())
+		plt.imshow(torch.irfft(self.kernel, signal_ndim=2, onesided=False).detach().view(self.SX, self.SY).numpy())
 		plt.show()
+
+
+
+
+
+class Kernel_wall(nn.Module):
+	#------------------------------------------------------
+	def __init__(self, config):
+		super().__init__()
+		self.config = config
+		self.compute_kernel()
+	#------------------------------------------------------
+	@property
+	def SX(self):
+		return self.config["SX"]
+	@property
+	def SY(self):
+		return self.config["SY"]
+	@property
+	def T(self):
+		return self.config["T"]
+	@property
+	def R(self):
+		return self.config["R"]
+	@property
+	def device(self):
+		return self.config["device"]
+	#------------------------------------------------------
+	def compute_kernel(self):
+		x = torch.arange(self.SX).to(self.device)
+		y = torch.arange(self.SY).to(self.device)
+		xx = x.view(-1, 1).repeat(1, self.SY)
+		yy = y.repeat(self.SX, 1)
+		X = (xx - int(self.SX / 2)).float() 
+		Y = (yy - int(self.SY / 2)).float() 
+
+		D = torch.sqrt(X ** 2 + Y ** 2) / (4)
+		kernel = torch.sigmoid(-(D-1)*10) * ker_c(D,torch.tensor(np.array([0,0,0])), torch.tensor(np.array([0.5,0.1,0.1])), torch.tensor(np.array([1,0,0])))
+
+		kernel = (kernel / torch.sum(kernel)).unsqueeze(0).unsqueeze(0)
+		self.kernel = torch.rfft(kernel, signal_ndim = 2, onesided = False).to(self.device)
+		self.kernel.requires_grad = False
+    #------------------------------------------------------
+	def forward(self, X_fft):
+		pot_fft = complex_mult_torch(self.kernel, X_fft)
+
+		pot = torch.irfft(pot_fft, signal_ndim = 2, onesided = False)
+		pot = roll_n(pot, 2, pot.size(2) // 2)
+		pot = roll_n(pot, 1, pot.size(2) // 2).squeeze(0)
+		
+		return pot
+	#------------------------------------------------------
+	def show(self):
+		plt.imshow(torch.irfft(self.kernel, signal_ndim=2, onesided=False).detach().view(self.SX, self.SY).numpy())
+		plt.show()
+
+
 
 #==============================================================================
 #===============================PARAMETER SPACE================================
@@ -103,8 +160,10 @@ class Kernel_param_space(DictSpace):
 		)
 		super().__init__(spaces = spaces)
 
-if __name__ == '__main__':
-	ps = Kernel_param_space(1)
-	print(ps.sample())
+def kernel_params_generator(nb_k):
+	space = Kernel_param_space(nb_k)
+	return space.sample()
+
+
 
 

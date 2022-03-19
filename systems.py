@@ -2,6 +2,10 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+from channels import Channel
+from kernels import Kernel
+from interaction import Interaction
+
 class Lenia_C(nn.Module):
 	#------------------------------------------------------
 	def __init__(self, config):
@@ -79,3 +83,46 @@ class Lenia_C(nn.Module):
 			if record:
 				orb[t] = self.state.detach()
 		return orb if record else self.state
+	#------------------------------------------------------
+	def init_state(self, state = None):
+		if state is None :
+			if hasattr(self.config, "init"):
+				state = self.config.init
+			else :
+				raise ValueError("No init in config")
+		self.state = state
+	#------------------------------------------------------
+	def update(self):
+		for kernel in self.kernels:
+			kernel.compute_kernel()
+
+
+
+#=====================================================================
+#==============================NEAT LENIA=============================
+#=====================================================================
+
+class NEAT_Lenia(Lenia_C):
+	#------------------------------------------------------
+	def __init__(self, config, neat_config):
+
+		super().__init__(config)
+		
+		self.neat_config = neat_config
+
+		self.add_channel(Channel(self.config))
+		self.add_kernel(Interaction.build_random(0, 0, 1, Exponential_GF, 
+			self.config.kernel_params, self.config.gf_params))
+	#------------------------------------------------------
+	def mutate(self):
+		pass
+	#------------------------------------------------------
+	def cross(self, system):
+		pass
+	#------------------------------------------------------
+	def mut_add_channel(self):
+		pass
+	def mut_add_kernel(self):
+		pass
+
+
