@@ -73,7 +73,7 @@ class Kernel(nn.Module):
 
 		pot = torch.irfft(pot_fft, signal_ndim = 2, onesided = False)
 		pot = roll_n(pot, 2, pot.size(2) // 2)
-		pot = roll_n(pot, 1, pot.size(2) // 2).squeeze(0)
+		pot = roll_n(pot, 1, pot.size(1) // 2).squeeze(0)
 
 		return pot
 	#------------------------------------------------------
@@ -128,7 +128,7 @@ class Kernel_wall(nn.Module):
 
 		pot = torch.irfft(pot_fft, signal_ndim = 2, onesided = False)
 		pot = roll_n(pot, 2, pot.size(2) // 2)
-		pot = roll_n(pot, 1, pot.size(2) // 2).squeeze(0)
+		pot = roll_n(pot, 1, pot.size(1) // 2).squeeze(0)
 		
 		return pot
 	#------------------------------------------------------

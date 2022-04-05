@@ -73,8 +73,8 @@ class Lenia_C(nn.Module):
 			dXn = dXn + norm
 
 		for i, c in enumerate(self.channels):
-			if dXn[i]:
-				c.update(dX[i] / dXn[i])
+			#if dXn[i]:
+			c.update(dX[i])
 	#------------------------------------------------------
 	def run(self, T, record = True):
 		if record :
