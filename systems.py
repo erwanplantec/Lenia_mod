@@ -66,14 +66,15 @@ class Lenia_C(nn.Module):
 		X_fft = [torch.rfft(self.state[i,:,:], signal_ndim=2, onesided=False) 
 			for i in range(self.C)]
 		dX = torch.zeros((self.C, self.SX, self.SY))
-		dXn = torch.zeros((self.C, self.SX, self.SY))
+		dXn = torch.zeros((self.C))
 		for kernel in self.kernels:
 			field, norm = kernel(X_fft)
 			dX = dX + field
 			dXn = dXn + norm
 
 		for i, c in enumerate(self.channels):
-			c.update(dX[i] / dXn[i])
+			if dXn[i]:
+				c.update(dX[i] / dXn[i])
 	#------------------------------------------------------
 	def run(self, T, record = True):
 		if record :
