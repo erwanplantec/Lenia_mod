@@ -72,9 +72,11 @@ class Kernel(nn.Module):
 		pot_fft = complex_mult_torch(self.kernel, X_fft)
 
 		pot = torch.irfft(pot_fft, signal_ndim = 2, onesided = False)
+		
 		pot = roll_n(pot, 2, pot.size(2) // 2)
-		pot = roll_n(pot, 1, pot.size(1) // 2).squeeze(0)
 
+		pot = roll_n(pot, 3, pot.size(3) // 2).squeeze(0)
+		
 		return pot
 	#------------------------------------------------------
 	def show(self):
@@ -127,8 +129,10 @@ class Kernel_wall(nn.Module):
 		pot_fft = complex_mult_torch(self.kernel, X_fft)
 
 		pot = torch.irfft(pot_fft, signal_ndim = 2, onesided = False)
+		
 		pot = roll_n(pot, 2, pot.size(2) // 2)
-		pot = roll_n(pot, 1, pot.size(1) // 2).squeeze(0)
+
+		pot = roll_n(pot, 3, pot.size(3) // 2).squeeze(0)
 		
 		return pot
 	#------------------------------------------------------

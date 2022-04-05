@@ -8,6 +8,8 @@ from utils import complex_mult_torch, roll_n
 from kernels import Kernel, Kernel_wall
 from growth_functions import Wall_GF
 
+import matplotlib.pyplot as plt
+
 class Interaction(nn.Module):
 	#------------------------------------------------------
 	def __init__(self, srce, trget, kernels, g_funcs, config):
