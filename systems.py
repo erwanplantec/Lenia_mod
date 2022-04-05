@@ -95,6 +95,23 @@ class Lenia_C(nn.Module):
 	def update(self):
 		for kernel in self.kernels:
 			kernel.compute_kernel()
+	#------------------------------------------------------
+	@staticmethod
+	def from_matrix(matrix, config):
+		sys = Lenia_C(config)
+		C = matrix.shape[0]
+		[sys.add_channel(Channel(config)) for _ in range(C)]
+		for s in range(C):
+			for t in range(C):
+				if matrix[s, t]:
+					sys.add_kernel(
+						Interaction.build_random(s, t, 
+							int(matrix[s, t]), Exponential_GF, 
+							config.kernel_params, config.gf_params, 
+							config)
+					)
+		return sys
+
 
 
 

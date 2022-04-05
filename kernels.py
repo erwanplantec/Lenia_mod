@@ -160,8 +160,26 @@ class Kernel_param_space(DictSpace):
 		)
 		super().__init__(spaces = spaces)
 
-def kernel_params_generator(nb_k):
-	space = Kernel_param_space(nb_k)
+
+class Kernel_param_space_inh(DictSpace):
+	#------------------------------------------------------
+	def __init__(self, nb_k):
+		spaces = Dict(
+			a = BoxSpace(low=0, high=1, shape=(nb_k,3), mutation_mean=torch.zeros((nb_k,3)), 
+				mutation_std=0.2*torch.ones((nb_k,3)), indpb=1, dtype=torch.float32),
+			b = BoxSpace(low=-1.0, high=1.0, shape=(nb_k,3), mutation_mean=torch.zeros((nb_k,3)), 
+				mutation_std=0.2*torch.ones((nb_k,3)), indpb=1, dtype=torch.float32),
+			w = BoxSpace(low=0.01, high=0.5, shape=(nb_k,3), mutation_mean=torch.zeros((nb_k,3)), 
+				mutation_std=0.2*torch.ones((nb_k,3)), indpb=1, dtype=torch.float32),
+			r = BoxSpace(low=0.2, high=1.0, shape=(nb_k,), mutation_mean=torch.zeros((nb_k,)), 
+				mutation_std=0.2*torch.ones((nb_k,)), indpb=1, dtype=torch.float32),
+			h = BoxSpace(low=0, high=1.0, shape=(nb_k,), mutation_mean=torch.zeros((nb_k,)), 
+				mutation_std=0.2*torch.ones((nb_k,)), indpb=0.1, dtype=torch.float32)
+		)
+		super().__init__(spaces = spaces)
+
+def kernel_params_generator(nb_k, Space = Kernel_param_space):
+	space = Space(nb_k)
 	return space.sample()
 
 

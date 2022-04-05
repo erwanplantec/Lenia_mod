@@ -124,6 +124,17 @@ class GF_param_space(DictSpace):
 		)
 		super().__init__(spaces = spaces)
 
-def gf_params_generator(nb_k):
-	space = GF_param_space(nb_k)
+class GF_param_space_inh(DictSpace):
+	#------------------------------------------------------
+	def __init__(self, nb_k, m_range = (-.5, .5), s_range = (.001, .5)):
+		spaces = Dict(
+			m = BoxSpace(low=m_range[0], high=m_range[1], shape=(nb_k,), mutation_mean=torch.zeros((nb_k,)), 
+				mutation_std=0.2*torch.ones((nb_k,)), indpb=1, dtype=torch.float32),
+            s = BoxSpace(low=s_range[0], high=s_range[1], shape=(nb_k,), mutation_mean=torch.zeros((nb_k,)), 
+            	mutation_std=0.01**torch.ones((nb_k,)), indpb=0.1, dtype=torch.float32),
+		)
+		super().__init__(spaces = spaces)
+
+def gf_params_generator(nb_k, Space = GF_param_space):
+	space = Space(nb_k)
 	return space.sample()
