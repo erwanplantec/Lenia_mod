@@ -32,6 +32,8 @@ class Kernel(nn.Module):
 		# Relative weight
 		self.register_parameter("h", nn.Parameter(h))
 
+		self.to(self.config.device)
+
 		self.compute_kernel()
 	#------------------------------------------------------
 	@property
@@ -76,7 +78,7 @@ class Kernel(nn.Module):
 		pot = roll_n(pot, 2, pot.size(2) // 2)
 
 		pot = roll_n(pot, 3, pot.size(3) // 2).squeeze(0)
-		
+
 		return pot
 	#------------------------------------------------------
 	def show(self):

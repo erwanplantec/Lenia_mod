@@ -15,7 +15,7 @@ class Channel():
 	@state.setter
 	def state(self, state):
 		assert state.shape == (self.SX, self.SY)
-		self._state = state
+		self._state = state.to(self.device)
 	#------------------------------------------------------
 	@property
 	def SX(self):

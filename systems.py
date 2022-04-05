@@ -83,7 +83,7 @@ class Lenia_C(nn.Module):
 			self.step()
 			if record:
 				orb[t] = self.state.detach()
-		return orb if record else self.state
+		return orb.cpu() if record else self.state.cpu()
 	#------------------------------------------------------
 	def init_state(self, state = None):
 		if state is None :

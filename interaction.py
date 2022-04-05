@@ -25,7 +25,7 @@ class Interaction(nn.Module):
 
 		self.srce, self.trget = srce, trget
 
-		self.to(self.config["device"])
+		self.to(self.config.device)
 	#------------------------------------------------------
 	def forward(self, X_fft):
 		dX = torch.zeros((len(X_fft), self.config.SX, self.config.SY))
