@@ -13,67 +13,89 @@ import matplotlib.animation as animation
 
 from systems import Lenia_C
 from kernels import Kernel, Kernel_param_space, Kernel_param_space_inh, Kernel_wall
-from interaction import Interaction
+from interaction import Interaction, Wall_Interaction
 from channels import Channel
 from growth_functions import Exponential_GF, GF_param_space, GF_param_space_inh, Wall_GF
 
 from functools import partial
 
-C = 1
-run_steps = 100
-seeds = 10
+C = 4
+nb_k = 5
 
-# init = torch.rand((40, 40))
-# init_state[0, 108:148, 108:148] = init
+config = Dict(
+  device = 'cpu',
+  SX = 256,
+  SY = 256,
+  R = 15, 
+  T = 10.,
+  kernel_params = Kernel_param_space,
+  gf_params = GF_param_space,
+  init = torch.rand((1, 256, 256))
+)
 
-s_ranges = [.18, .25, .35, .45, .55]
-results = np.zeros((len(s_ranges), seeds))
+system = Lenia_C(config)
+
+for c in range(C):
+  system.add_channel(Channel(config))
+
+# Crea -> crea kernels
+system.add_kernel(
+    Interaction.build_random(0, 0, nb_k, Exponential_GF, 
+      config.kernel_params, config.gf_params, config)
+)
+
+# Wall -> Crea kernel
+system.add_kernel(
+    Wall_Interaction(1, 0, config)
+)
+
+# # Cue -> Crea
+# system.add_kernel(
+#     Interaction.build_random(2, 0, 1, Exponential_GF, 
+#       config.kernel_params, config.gf_params, config)
+# )
+# system.add_kernel(
+#     Interaction.build_random(3, 0, 1, Exponential_GF, 
+#       config.kernel_params, config.gf_params, config)
+# )
+
+state = torch.zeros_like(system.state)
+
+#==================Walls=================
+walls = torch.zeros((config.SX, config.SY))
+wall_pts = [
+            ((93, 25), (163, 30)),
+            ((163, 25), (168, 160)),
+            ((163, 160), (250, 165)),
+            ((250, 160), (255, 230)),
+            ((1, 230), (255, 235)),
+            ((1, 160), (6, 230)),
+            ((1, 160), (93, 165)),
+            ((93, 25), (98, 165))
+]
+
+for (x1, y1), (x2, y2) in wall_pts:
+  walls[y1:y2, x1:x2] = 1.
+
+#=================Crea======================
+crea = torch.zeros_like(walls)
+crea[35:85, 103:153] = torch.rand((50, 50))
+
+#==================Cue======================
+
+cue = torch.zeros_like(crea)
+cue[130:150, 118:138] = 1.
 
 
-for i, sp in enumerate(s_ranges):
+state[0] = crea
+state[1] = walls
+state[2] = cue
 
-	for seed in range(seeds):
+system.state = state
 
-		print(sp, seed)
+imgs = system.run(150, True).detach().numpy()
 
-		config = Dict(
-			device = 'cpu',
-			SX = 256,
-			SY = 256,
-			R = 15, 
-			T = 10.,
-			kernel_params = Kernel_param_space_inh,
-			gf_params = partial(GF_param_space_inh, s_range = (.001, sp)),
-			init = torch.rand((1, 256, 256))
-		)
-
-		system = Lenia_C(config)
-
-		for c in range(C):
-			system.add_channel(Channel(config))
-
-		system.add_kernel(Interaction.build_random(0, 0, 10, Exponential_GF, 
-			config.kernel_params, config.gf_params, config))
-
-		system.init_state()
-
-
-
-		N = 200
-
-		with torch.no_grad():
-			state = system.run(N, False)	
-
-		results[i, seed] = state[0, ...].detach().numpy().sum()
-	# imgs = traj.detach().numpy()
-
-
-plt.plot(s_ranges, results.mean(axis = 1))
-plt.xlabel("sigma +")
-plt.ylabel("|X|")
-plt.show()
-
-# gen_vid_mpl(imgs)
+gen_vid_mpl(imgs)
 
 
 
