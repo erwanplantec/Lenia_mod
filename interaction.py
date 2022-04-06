@@ -28,8 +28,8 @@ class Interaction(nn.Module):
 		self.to(self.config.device)
 	#------------------------------------------------------
 	def forward(self, X_fft):
-		dX = torch.zeros((len(X_fft), self.config.SX, self.config.SY))
-		dXn = torch.zeros((len(X_fft)))
+		dX = torch.zeros((len(X_fft), self.config.SX, self.config.SY)).to(self.config.device)
+		dXn = torch.zeros((len(X_fft))).to(self.config.device)
 		for k, g in zip(self.kernels, self.g_funcs):
 			dX[self.trget] = dX[self.trget] + g(k(X_fft[self.srce])) * k.h
 			dXn[self.trget] = dXn[self.trget] + k.h
@@ -73,8 +73,8 @@ class Wall_Interaction(nn.Module):
 	def forward(self, X_fft):
 		
 		with torch.no_grad():
-			dX = torch.zeros((len(X_fft), self.config.SX, self.config.SY))
-			dXn = torch.zeros((len(X_fft)))
+			dX = torch.zeros((len(X_fft), self.config.SX, self.config.SY)).to(self.config.device)
+			dXn = torch.zeros((len(X_fft))).to(self.config.device)
 			dX[self.trget] = dX[self.trget] + self.g_func(self.kernel(X_fft[self.srce]))
 			dXn[self.trget] = dXn[self.trget] + 1
 

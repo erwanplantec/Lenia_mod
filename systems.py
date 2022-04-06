@@ -65,8 +65,8 @@ class Lenia_C(nn.Module):
 	def step(self):
 		X_fft = [torch.rfft(self.state[i,:,:], signal_ndim=2, onesided=False) 
 			for i in range(self.C)]
-		dX = torch.zeros((self.C, self.SX, self.SY))
-		dXn = torch.zeros((self.C))
+		dX = torch.zeros((self.C, self.SX, self.SY)).to(self.device)
+		dXn = torch.zeros((self.C)).to(self.device)
 		for kernel in self.kernels:
 			field, norm = kernel(X_fft)
 			dX = dX + field
