@@ -124,7 +124,7 @@ class Lenia_C(nn.Module):
 		config.T = params["T"]
 		config.R = params["R"]
 
-		C = max(params["c0"].max(), params["c1"].max())
+		C = max(params["c0"].max(), params["c1"].max()) + 1
 
 		for c in range(C):
 			system.add_channel(Channel(config))
@@ -132,15 +132,15 @@ class Lenia_C(nn.Module):
 		interactions = {}
 
 		for i, (s, t) in enumerate(zip(params["c0"], params["c1"])):
-			
-			interactions[(s, t)] = interactions.get((s, t), 
-				Interaction(s, t, [], [], config))
+
+			interactions[(s.item(), t.item())] = interactions.get((s, t), 
+				Interaction(s.item(), t.item(), [], [], config))
 			
 			k = Kernel(params["rk"][i], params["b"][i], params["w"][i],
 				params["r"][i], params["h"][i], config)				
 			g = Exponential_GF(params["m"][i], params["s"][i], config)
 
-			interactions[(s, t)].add(k, g)
+			interactions[(s.item(), t.item())].add(k, g)
 
 		for i in interactions.values():
 			

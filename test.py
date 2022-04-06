@@ -29,4 +29,7 @@ config = Dict(
       init = torch.rand((1, 256, 256))
 )
 
-Lenia_C.from_file("init.pickle", config)
+system = Lenia_C.from_file("init.pickle", config)
+
+
+system.run(100)
