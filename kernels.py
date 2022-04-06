@@ -95,7 +95,7 @@ class Kernel_wall(nn.Module):
 		super().__init__()
 		self.config = config
 
-		self.to(self.confif.device)
+		self.to(self.config.device)
 
 		self.compute_kernel()
 	#------------------------------------------------------
