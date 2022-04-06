@@ -94,6 +94,9 @@ class Kernel_wall(nn.Module):
 	def __init__(self, config):
 		super().__init__()
 		self.config = config
+
+		self.to(self.confif.device)
+
 		self.compute_kernel()
 	#------------------------------------------------------
 	@property
@@ -121,7 +124,10 @@ class Kernel_wall(nn.Module):
 		Y = (yy - int(self.SY / 2)).float() 
 
 		D = torch.sqrt(X ** 2 + Y ** 2) / (4)
-		kernel = torch.sigmoid(-(D-1)*10) * ker_c(D,torch.tensor(np.array([0,0,0])), torch.tensor(np.array([0.5,0.1,0.1])), torch.tensor(np.array([1,0,0])))
+		kernel = torch.sigmoid(-(D-1)*10) * \
+			ker_c(D,torch.tensor(np.array([0,0,0])), 
+				torch.tensor(np.array([0.5,0.1,0.1])), 
+				torch.tensor(np.array([1,0,0]))).to(self.config.device)
 
 		kernel = (kernel / torch.sum(kernel)).unsqueeze(0).unsqueeze(0)
 		self.kernel = torch.rfft(kernel, signal_ndim = 2, onesided = False).to(self.device)
