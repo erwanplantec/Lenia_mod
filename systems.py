@@ -4,6 +4,7 @@ import numpy as np
 
 from channels import Channel
 from kernels import Kernel
+from growth_functions import Exponential_GF
 from interaction import Interaction
 
 class Lenia_C(nn.Module):
@@ -112,6 +113,44 @@ class Lenia_C(nn.Module):
 							config)
 					)
 		return sys
+	#------------------------------------------------------
+	@staticmethod
+	def from_file(file, config):
+
+		system = Lenia_C(config)
+		
+		params = torch.load(file, map_location = torch.device(config.device))
+
+		config.T = params["T"]
+		config.R = params["R"]
+
+		C = max(params["c0"].max(), params["c1"].max())
+
+		for c in range(C):
+			system.add_channel(Channel(config))
+
+		interactions = {}
+
+		for i, (s, t) in enumerate(zip(params["c0"], params["c1"])):
+			
+			interactions[(s, t)] = interactions.get((s, t), 
+				Interaction(s, t, [], [], config))
+			
+			k = Kernel(params["rk"][i], params["b"][i], params["w"][i],
+				params["r"][i], params["h"][i], config)				
+			g = Exponential_GF(params["m"][i], params["s"][i], config)
+
+			interactions[(s, t)].add(k, g)
+
+		for i in interactions.values():
+			
+			system.add_kernel(i)
+
+
+		return system
+
+
+
 
 
 
