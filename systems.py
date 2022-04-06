@@ -116,10 +116,15 @@ class Lenia_C(nn.Module):
 	#------------------------------------------------------
 	@staticmethod
 	def from_file(file, config):
-
-		system = Lenia_C(config)
 		
 		params = torch.load(file, map_location = torch.device(config.device))
+
+		return Lenia_C.from_params(params, config)
+	#------------------------------------------------------
+	@staticmethod
+	def from_params(params, config):
+
+		system = Lenia_C(config)
 
 		config.T = params["T"]
 		config.R = params["R"]
@@ -146,8 +151,8 @@ class Lenia_C(nn.Module):
 			
 			system.add_kernel(i)
 
-
 		return system
+
 
 
 
