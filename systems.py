@@ -138,7 +138,7 @@ class Lenia_C(nn.Module):
 
 		for i, (s, t) in enumerate(zip(params["c0"], params["c1"])):
 
-			interactions[(s.item(), t.item())] = interactions.get((s, t), 
+			interactions[(s.item(), t.item())] = interactions.get((s.item(), t.item()), 
 				Interaction(s.item(), t.item(), [], [], config))
 			
 			k = Kernel(params["rk"][i], params["b"][i], params["w"][i],
@@ -152,6 +152,7 @@ class Lenia_C(nn.Module):
 			system.add_kernel(i)
 
 		return system
+		
 
 
 
