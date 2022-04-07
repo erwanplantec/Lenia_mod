@@ -82,7 +82,7 @@ class Kernel(nn.Module):
 		return pot
 	#------------------------------------------------------
 	def show(self):
-		plt.imshow(torch.irfft(self.kernel, signal_ndim=2, onesided=False).detach().view(self.SX, self.SY).numpy())
+		plt.imshow(torch.irfft(self.kernel, signal_ndim=2, onesided=False).detach().view(self.SX, self.SY).cpu().numpy())
 		plt.show()
 
 

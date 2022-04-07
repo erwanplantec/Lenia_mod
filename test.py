@@ -4,11 +4,6 @@ from torch.optim import Adam
 import matplotlib.pyplot as plt
 from addict import Dict
 from utils import gen_vid_mpl
-import json
-import PIL.Image, PIL.ImageDraw
-import io
-import matplotlib.cm as cm
-import matplotlib.animation as animation
 
 from systems import Lenia_C
 from kernels import Kernel, Kernel_param_space, Kernel_param_space_inh, Kernel_wall
@@ -18,18 +13,20 @@ from growth_functions import Exponential_GF, GF_param_space, GF_param_space_inh,
 
 from functools import partial
 
+
+params = torch.load("crea.pickle", map_location = torch.device("cpu"))
+init = params["policy_parameters"]["initialization"]["init"]
+rule = params["policy_parameters"]["update_rule"]
+
 config = Dict(
-      device = 'cpu',
-      SX = 256,
-      SY = 256,
-      R = 15, 
-      T = 10.,
-      kernel_params = Kernel_param_space,
-      gf_params = GF_param_space,
-      init = torch.rand((1, 256, 256))
+  device = 'cuda',
+  SX = 256,
+  SY = 256,
+  R = rule["R"], 
+  T = rule["T"],
+  kernel_params = Kernel_param_space,
+  gf_params = GF_param_space,
+  init = torch.rand((1, 256, 256))
 )
 
-system = Lenia_C.from_file("init.pickle", config)
-
-
-system.run(100)
+system = Lenia_C.from_params(rule, config)
