@@ -63,7 +63,7 @@ class Lenia_C(nn.Module):
 	#------------------------------------------------------
 	#-------------------------RUNNING----------------------
 	#------------------------------------------------------
-	def step(self):
+	def step(self, norm = True):
 		X_fft = [torch.rfft(self.state[i,:,:], signal_ndim=2, onesided=False) 
 			for i in range(self.C)]
 		dX = torch.zeros((self.C, self.SX, self.SY)).to(self.device)
@@ -74,14 +74,13 @@ class Lenia_C(nn.Module):
 			dXn = dXn + norm
 
 		for i, c in enumerate(self.channels):
-			#if dXn[i]:
-			c.update(dX[i])
+			c.update((dX[i] / dXn[i]) if norm else dX)
 	#------------------------------------------------------
-	def run(self, T, record = True):
+	def run(self, T, record = True, norm = True):
 		if record :
 			orb = torch.zeros((T, self.C, self.SX, self.SY)).to(self.device)
 		for t in range(T):
-			self.step()
+			self.step(norm)
 			if record:
 				orb[t] = self.state.detach()
 		return orb.cpu() if record else self.state.cpu()
@@ -122,7 +121,7 @@ class Lenia_C(nn.Module):
 		return Lenia_C.from_params(params, config)
 	#------------------------------------------------------
 	@staticmethod
-	def from_params(params, config):
+	def from_params(params, config, channel = Channel):
 
 		system = Lenia_C(config)
 
@@ -132,7 +131,7 @@ class Lenia_C(nn.Module):
 		C = max(params["c0"].max(), params["c1"].max()) + 1
 
 		for c in range(C):
-			system.add_channel(Channel(config))
+			system.add_channel(channel(config))
 
 		interactions = {}
 
@@ -152,7 +151,7 @@ class Lenia_C(nn.Module):
 			system.add_kernel(i)
 
 		return system
-		
+
 
 
 

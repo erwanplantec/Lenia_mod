@@ -41,3 +41,12 @@ class Channel():
 
 		self.state = torch.clip(self.state + (1.0 / self.T) * dX, 
 			min = 0., max = 1.)
+
+class Asymptotic_Channel(Channel):
+	#------------------------------------------------------
+	def __init__(self, config):
+		super().__init__(config)
+	#------------------------------------------------------
+	def update(self, dX):
+		targ = (dX + 1) / 2
+		self.state = self.state + (1. / self.T) * (targ - self.state)
