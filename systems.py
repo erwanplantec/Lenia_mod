@@ -69,12 +69,12 @@ class Lenia_C(nn.Module):
 		dX = torch.zeros((self.C, self.SX, self.SY)).to(self.device)
 		dXn = torch.zeros((self.C)).to(self.device)
 		for kernel in self.kernels:
-			field, norm = kernel(X_fft)
+			field, field_norm = kernel(X_fft)
 			dX = dX + field
-			dXn = dXn + norm
+			dXn = dXn + field_norm
 
 		for i, c in enumerate(self.channels):
-			c.update((dX[i] / dXn[i]) if norm else dX)
+			c.update((dX[i] / dXn[i]) if norm else dX[i])
 	#------------------------------------------------------
 	def run(self, T, record = True, norm = True):
 		if record :
