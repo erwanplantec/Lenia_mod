@@ -27,6 +27,10 @@ class Interaction(nn.Module):
 
 		self.to(self.config.device)
 	#------------------------------------------------------
+	@property
+	def nb_k(self):
+		return len(self.kernels)
+	#------------------------------------------------------
 	def forward(self, X_fft):
 		dX = torch.zeros((len(X_fft), self.config.SX, self.config.SY)).to(self.config.device)
 		dXn = torch.zeros((len(X_fft))).to(self.config.device)

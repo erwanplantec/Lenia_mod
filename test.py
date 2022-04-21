@@ -28,12 +28,15 @@ config = Dict(
 )
 
 system = Lenia_C.from_params(params, config)
-state = torch.zeros(system.state.shape)
-state[0, 98 : 158, 98 : 158] = torch.rand((60, 60))
-system.state = state
+b_sys = system.to_basic()
+b_sys.final_step = 60
 
-traj1 = system.run(100, True)
+with torch.no_grad():
+  b_sys.generate_init_state()
+  b_sys.run()
 
-print(traj1.max())
+plt.imshow(b_sys.state.view(256, 256).to("cpu").detach().numpy())
+plt.show()
 
-gen_vid_mpl(traj1)
+a = torch.rand((40, 40), requires_grad = True)
+print(a.is_leaf)

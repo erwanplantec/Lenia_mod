@@ -1,11 +1,13 @@
 import torch
 import torch.nn as nn
 import numpy as np
+from addict import Dict
 
 from channels import Channel
 from kernels import Kernel
 from growth_functions import Exponential_GF
 from interaction import Interaction
+from basic_Lenia import Lenia_C as Lenia_C_B
 
 class Lenia_C(nn.Module):
 	#------------------------------------------------------
@@ -74,7 +76,8 @@ class Lenia_C(nn.Module):
 			dXn = dXn + field_norm
 
 		for i, c in enumerate(self.channels):
-			c.update((dX[i] / dXn[i]) if norm else dX[i])
+			if (dX[i] != 0).any():
+				c.update((dX[i] / dXn[i]) if norm else dX[i])
 	#------------------------------------------------------
 	def run(self, T, record = True, norm = True):
 		if record :
@@ -96,6 +99,31 @@ class Lenia_C(nn.Module):
 	def update(self):
 		for kernel in self.kernels:
 			kernel.compute_kernel()
+	#------------------------------------------------------
+	def to_basic(self):
+		"""transform modular version to original"""
+		nb_k = sum([i.nb_k for i in self.kernels])
+
+		update_rules = Dict(
+			T = self.config.T,
+			R = self.config.R,
+			
+			c0 = torch.tensor(sum([[i.srce] * i.nb_k for i in self.kernels], start = [])),
+			c1 = torch.tensor(sum([[i.trget] * i.nb_k for i in self.kernels], start = [])),
+			rk = torch.cat(sum([[k.a.data.unsqueeze(0) for k in i.kernels] for i in self.kernels], start = [])),
+			b = torch.cat(sum([[k.b.data.unsqueeze(0) for k in i.kernels] for i in self.kernels], start = [])),
+			w = torch.cat(sum([[k.w.data.unsqueeze(0) for k in i.kernels] for i in self.kernels], start = [])),
+			r = torch.cat(sum([[k.r.data.unsqueeze(0) for k in i.kernels] for i in self.kernels], start = [])),
+			h = torch.cat(sum([[k.h.data.unsqueeze(0) for k in i.kernels] for i in self.kernels], start = [])),
+
+			m = torch.cat(sum([[g.m.data.unsqueeze(0) for g in i.g_funcs] for i in self.kernels], start = [])),
+			s = torch.cat(sum([[g.s.data.unsqueeze(0) for g in i.g_funcs] for i in self.kernels], start = []))
+		)
+
+		system = Lenia_C_B(nb_k, self.C, device = self.config.device, config = self.config)
+		system.reset(update_rule_parameters = update_rules)
+		return system
+
 	#------------------------------------------------------
 	@staticmethod
 	def from_matrix(matrix, config):
